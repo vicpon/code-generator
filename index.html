@@ -1,0 +1,117 @@
+<!DOCTYPE html />
+<html>
+    <head>
+        <style type="text/css">
+            .container, .data {
+                border: solid 1px #e0e0e0;
+                padding: 30px 0 0 15px;
+                position: relative;
+            }
+            .heading {
+                position: absolute;
+                top: 5px;
+                left: 5px;
+                color: #444;
+            }
+            textarea, textarea:active {
+                width: 100%;
+                border: none;
+                outline: none;
+            }
+            .top {
+                padding: 0;
+                height: 30%;
+                display: flex;
+            }
+            .data {
+                flex-grow: 1;
+            }
+            .controls {
+                width: 120px;
+                border-left: solid 1px #e0e0e0;
+                padding: 8px 0 0 8px;
+            }
+            .controls p {
+                margin-top: 0;
+                color: #444;
+            }
+            #delimiter {
+                width: 100px;
+            }
+            .template {
+                height: 10%;
+            }
+            .output {
+                height: 45%;
+            }
+            textarea {
+                height: 100%;
+                resize: none;
+            }
+        </style>
+        <script>
+            window.onload = () => {
+                var generate = document.querySelector("#go");
+                generate.addEventListener("click", () => {
+                    var data = document.querySelector(".data textarea").value;
+                    var template = document.querySelector(".template textarea").value;
+                    var outputElement = document.querySelector(".output textarea");
+                    var delimiter = document.querySelector("#delimiter").value ?? " ";
+                    if (delimiter.includes("\\")) {
+                        delimiter = parseControlCharacter(delimiter);
+                    }
+
+                    var rowDelimiter = "\n";
+                    var output = "";
+
+                    var templateParts = [...template.matchAll(/[\w\s\d=,.\[\];:\-\\(\\)]*(\$\d+)?/g)].map(x => x["0"]);
+
+                    var rows = data.split(rowDelimiter);
+                    rows.forEach(row => {
+                        var dataList = row.split(delimiter);
+                        for(let i = 0; i < templateParts.length; i++) {
+                            const dataIndex = parseInt(templateParts[i].substring(templateParts[i].indexOf("$") + 1));
+                            output += templateParts[i].replace("$" + dataIndex, dataList[dataIndex]);
+                        }
+                        output += rowDelimiter
+                    });
+
+
+                    outputElement.value = output;
+                });
+            }
+
+            function parseControlCharacter(character) {
+                switch(character) {
+                    case "\\t": return "\t";
+                    case "\\n": return "\n";
+                    case "\\r": return "\r";
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <h3>Data Generator</h3>
+        <div class="container top">
+            <div class="data">
+                <div class="heading">Input Data</div>
+                <textarea></textarea>
+            </div>
+            <div class="controls">
+                <p>
+                    <label>Delimiter:</label>
+                    <input id="delimiter" type="text" placeholder="space is default" />
+                </p>
+                <button id="go">Generate</button>
+            </div>
+        </div>
+        <div class="container template">
+            <div class="heading">Template</div>
+            <textarea></textarea>
+        </div>
+        <div class="container output">
+            <div class="heading">Output</div>
+            <textarea></textarea>
+        </div>
+    </body>
+</html>
